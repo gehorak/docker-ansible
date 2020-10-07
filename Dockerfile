@@ -51,7 +51,6 @@ RUN set -x && \
     mkdir /var/cache/apk 
 
 # Install dev libraries for Python ...
-
 RUN set -x && \
     \
     echo "==> Adding temperary Build-dependencies..." && \
@@ -93,7 +92,7 @@ RUN set -x && \
 RUN set -x && \
     echo "==> Makes the Ansible directories..."  && \
     mkdir -p /etc/ansible /ansible && \
-    mkdir -p /ansible/playbooks && \
+    mkdir -p /ansible/playbooks/roles && \
     mkdir ~/.ssh
 
 # Download Ansible tar file (curl)
