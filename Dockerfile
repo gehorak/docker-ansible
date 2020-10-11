@@ -1,9 +1,13 @@
 FROM python:3.8-alpine
 LABEL Name=dockeransible Version=0.0.1
 
+# Version of Ansible:
 ENV ANSIBLE_VERSION 2.10.0
 
-# Python:
+# Add file with python requrements:
+ADD requirements.txt .
+
+# Python  distribution native build package:
 # https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#id9
 # Acept Ansible requrements.txt
 
@@ -61,19 +65,19 @@ RUN set -x && \
     libffi \
     libffi-dev \
 #    linux-headers \
-    openssl-dev
+    openssl-dev && \
 
 # Install pip packages ...
-RUN set -x && \
+#RUN set -x && \
     \
     echo "==> Python pip package install......"  && \
     pip install --upgrade pip && \   
     pip install python-keyczar \
                 docker-py  && \
-    rm -rf /var/cache/* /var/tmp/* /tmp/* && \
-    mkdir /var/cache/apk 
+    #rm -rf /var/cache/* /var/tmp/* /tmp/* && \
+    #mkdir /var/cache/apk 
 
-# Install Ansible with python pip packages ...
+## Install Ansible with python pip packages ...
 #RUN set -x && \
 #    \
 #    echo "==> Installing Ansible with python pip..."  && \
@@ -81,12 +85,18 @@ RUN set -x && \
 #    python -m pip install --user paramiko && \
 #    pip install ansible==${ANSIBLE_VERSION}
 
-# Install Ansible with python pip requrements.txt ...
-ADD requirements.txt .
-RUN set -x && \
+## Install Ansible with python pip requrements.txt ...
+#RUN set -x && \
     \
     echo "==> Installing Ansible with pip requirements.txt..."  && \
-    pip install -r requirements.txt
+    pip install -r requirements.txt && \
+
+## Cleaning up Build-dependencies 
+#RUN set -x && \
+    \
+    echo "==> Cleaning up Build-dependencies ..."  && \
+    apk del build-dependencies && \
+    rm -rf /var/cache/apk/* 
 
 # Makes the Ansible directories
 RUN set -x && \
@@ -95,12 +105,12 @@ RUN set -x && \
     mkdir -p /ansible/playbooks/roles && \
     mkdir ~/.ssh
 
-# Download Ansible tar file (curl)
+## Download Ansible tar file (curl)
 #RUN set -x && \
 #    \
 #    echo "==> Download Ansible tar file..."  && \
 #    curl -fsSL https://releases.ansible.com/ansible/ansible-${ANSIBLE_VERSION}.tar.gz -o ansible.tar.gz
-# Extracts Ansible from the tar file
+## Extracts Ansible from the tar file
 #RUN set -x && \
 #    \
 #    echo "==> Extract Ansible tar file..."  && \
@@ -117,12 +127,7 @@ RUN set -x && \
 RUN echo "host *" >> ~/.ssh/config &&\
     echo "StrictHostKeyChecking no" >> ~/.ssh/config
 
-# Cleaning up Build-dependencies 
-RUN set -x && \
-    echo "==> Cleaning up Build-dependencies ..."  && \
-    apk del build-dependencies && \
-    rm -rf /var/cache/apk/* 
-
+# Ansible environment 
 ENV ANSIBLE_GATHERING smart
 ENV ANSIBLE_HOST_KEY_CHECKING false
 ENV ANSIBLE_RETRY_FILES_ENABLED false
@@ -132,13 +137,11 @@ ENV PYTHONPATH /ansible/lib
 ENV PATH /ansible/bin:$PATH
 ENV ANSIBLE_LIBRARY /ansible/library
 
-
 WORKDIR /ansible/playbooks
 
-# Sets entry point (same as running ansible-playbook)
+## Sets entry point (same as running ansible-playbook)
 # ENTRYPOINT ["ansible-playbook"]
-
-# Can also use ["ansible"] if wanting it to be an ad-hoc command version
+## Can also use ["ansible"] if wanting it to be an ad-hoc command version
 # ENTRYPOINT ["ansible"]
 
 CMD ["/sbin/init"]
